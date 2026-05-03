@@ -8,9 +8,10 @@
 class Orderbook{
 public:
     void addOrder(const Order& order);
+    void addTrade(const Trade& trade);
     void printOrder() const;
-    // print the best sell
     void printTopBook() const;
+    void printTrades() const;
 private:
     std::vector<Order> bids;
     std::vector<Order> asks;

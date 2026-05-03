@@ -1,32 +1,103 @@
 #include "Orderbook.hpp"
 #include "Order.hpp"
 
+
 #include <iostream>
+#include <algorithm>
 
 void Orderbook::addOrder(const Order& order){
+    // keep the original order, copy the current order
+    Order incoming = order;
+
     // Best ask(smallest on the front)
-    if (order.side == Side::Ask){
-        int i = 0;
-        while (i < asks.size()){
-            if (order.price < asks[i].price){
-                asks.insert(asks.begin() + i, order);
-                return;
+    if (incoming.side == Side::Ask){
+        while (incoming.qty > 0 && !(bids.empty())) {
+            Order& bestBid = bids.front();
+
+            if (incoming.price > bestBid.price) {
+                break;
             }
-            i++;
+
+            int tradeqty = std::min(incoming.qty, bestBid.qty);
+            Trade trade{
+                bestBid.id,
+                incoming.id,
+                tradeqty,
+                bestBid.price
+            };
+            addTrade(trade);
+            
+            incoming.qty -= tradeqty;
+            bestBid.qty -= tradeqty;
+            
+            if (bestBid.qty == 0) {
+                bids.erase(bids.begin());
+            }
         }
-        asks.push_back(order);
+        if (incoming.qty > 0) {
+            int i = 0;
+            while (i < asks.size()) {
+                // if the price is equal u still need to keep going cuz the id is different(the order is from differnt person)
+                if (incoming.price < asks[i].price) {
+                    asks.insert(asks.begin() + i, incoming);
+                    return;
+                }
+                i++;
+            }
+            asks.push_back(incoming);
+        }
     }
+
     // Best bid(largest on the front) 
     else if (order.side == Side::Bid){
-        int i = 0;
-        while (i < bids.size()){
-            if (order.price > bids[i].price){
-                bids.insert(bids.begin() + i, order);
-                return;
+        while (incoming.qty > 0 && !(asks.empty())) {
+            Order& bestAsk = asks.front();
+
+            if (incoming.price < bestAsk.price){
+                break;
             }
-            i++;
+            int tradeqty = std::min(incoming.qty, bestAsk.qty);
+            Trade trade{
+                incoming.id,
+                bestAsk.id,
+                tradeqty,
+                bestAsk.price
+            };
+            addTrade(trade);
+
+            incoming.qty -= tradeqty;
+            bestAsk.qty -= tradeqty;
+
+            if (bestAsk.qty == 0) {
+                asks.erase(asks.begin());
+            }
         }
-        bids.push_back(order);
+        if (incoming.qty > 0){
+            int i = 0;
+            while (i < bids.size()) {
+                if (incoming.price > bids[i].price) {
+                    bids.insert(bids.begin() + i, incoming); 
+                    return;
+                }
+                i++;
+            }
+            bids.push_back(incoming);
+        }
+    }
+}
+
+void Orderbook::addTrade(const Trade& trade){
+    trades.push_back(trade);
+}
+
+void Orderbook::printTrades() const{
+    std::cout << "TRADES: \n";
+    for (const Trade& trade : trades){
+        std::cout << "buyOrderID=" << trade.buyOrderID
+                  << " sellOrderID=" << trade.sellOrderID
+                  << " qty=" << trade.tradeQty
+                  << " price=" << trade.tradePrice
+                  << '\n';
     }
 }
 

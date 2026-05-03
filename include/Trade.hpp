@@ -5,6 +5,6 @@
 struct Trade{
     int buyOrderID;
     int sellOrderID;
-    int qty;
-    int price;
+    int tradeQty;
+    int tradePrice;
 };

@@ -1,29 +1,32 @@
 #include "Orderbook.hpp"
 
 #include <iostream>
-#include <algorithm>
 
+void printState(const char* title, const Orderbook& book) {
+    std::cout << "\n=== " << title << " ===\n";
+    book.printOrder();
+    book.printTopBook();
+    book.printTrades();
+}
 
 int main() {
     Orderbook book;
 
-    Order bid1{1, 5, 100, Side::Bid};
-    Order bid2{2, 3, 105, Side::Bid};
-    Order bid3{3, 8, 99, Side::Bid};
+    book.addOrder(Order{1, 10, 100, Side::Bid});
+    book.addOrder(Order{2, 5, 105, Side::Bid});
+    book.addOrder(Order{3, 7, 100, Side::Bid});
+    printState("After adding resting bids", book);
 
-    Order ask1{4, 2, 110, Side::Ask};
-    Order ask2{5, 7, 103, Side::Ask};
-    Order ask3{6, 1, 105, Side::Ask};
+    book.addOrder(Order{4, 4, 110, Side::Ask});
+    book.addOrder(Order{5, 6, 108, Side::Ask});
+    book.addOrder(Order{6, 3, 110, Side::Ask});
+    printState("After adding resting asks", book);
 
-    book.addOrder(bid1);
-    book.addOrder(bid2);
-    book.addOrder(bid3);
-    book.addOrder(ask1);
-    book.addOrder(ask2);
-    book.addOrder(ask3);
+    book.addOrder(Order{7, 7, 110, Side::Bid});
+    printState("After bid 7 crosses the ask side", book);
 
-    book.printOrder();
-    book.printTopBook();
+    book.addOrder(Order{8, 20, 99, Side::Ask});
+    printState("After ask 8 crosses the bid side", book);
 
     return 0;
 }
